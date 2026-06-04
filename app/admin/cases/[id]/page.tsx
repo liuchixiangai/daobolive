@@ -2,6 +2,7 @@
 
 import { useEffect, useState, use } from "react";
 import CaseForm, { CaseFormData } from "../CaseForm";
+import HtmlEditor from "../HtmlEditor";
 
 interface CaseDetail {
   id: string;
@@ -21,6 +22,7 @@ interface CaseDetail {
   summary: string | null;
   teamDisplay: string | null;
   techTags: string | null;
+  htmlContent: string | null;
 }
 
 export default function EditCasePage({
@@ -90,5 +92,10 @@ export default function EditCasePage({
     status: caseData.status,
   };
 
-  return <CaseForm mode="edit" initialData={formData} onSubmit={handleSubmit} />;
+  return (
+    <div className="page-enter">
+      <CaseForm mode="edit" initialData={formData} onSubmit={handleSubmit} />
+      <HtmlEditor caseId={caseData.id} initialHtml={caseData.htmlContent} />
+    </div>
+  );
 }

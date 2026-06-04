@@ -2,6 +2,7 @@
 
 import { useEffect, useState, use } from "react";
 import Link from "next/link";
+import { wrapHtmlForDisplay } from "@/lib/html-sanitizer";
 
 interface CaseDetail {
   id: string;
@@ -117,14 +118,17 @@ export default function PublicCasePage({
     <div style={{ maxWidth: "900px", margin: "0 auto", padding: "24px" }}>
       {/* 用户 HTML 主体内容 */}
       {caseData.htmlContent && (
-        <div
+        <iframe
+          srcDoc={wrapHtmlForDisplay(caseData.htmlContent)}
           style={{
-            background: "#ffffff",
+            width: "100%",
+            minHeight: "500px",
+            border: "1px solid #e2e8f0",
             borderRadius: "8px",
-            overflow: "hidden",
-            marginBottom: "24px",
+            background: "#ffffff",
           }}
-          dangerouslySetInnerHTML={{ __html: caseData.htmlContent }}
+          sandbox="allow-scripts allow-same-origin"
+          title="案例内容"
         />
       )}
 

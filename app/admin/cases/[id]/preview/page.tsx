@@ -2,6 +2,7 @@
 
 import { useEffect, useState, use } from "react";
 import Link from "next/link";
+import { wrapHtmlForDisplay } from "@/lib/html-sanitizer";
 
 interface CaseDetail {
   id: string;
@@ -68,14 +69,17 @@ export default function PreviewPage({
       <div style={{ maxWidth: "800px", margin: "0 auto" }}>
         {/* HTML 主体内容 */}
         {caseData.htmlContent ? (
-          <div
+          <iframe
+            srcDoc={wrapHtmlForDisplay(caseData.htmlContent)}
             style={{
-              background: "#ffffff",
-              borderRadius: "8px",
-              overflow: "hidden",
+              width: "100%",
+              minHeight: "500px",
               border: "1px solid #e2e8f0",
+              borderRadius: "8px",
+              background: "#ffffff",
             }}
-            dangerouslySetInnerHTML={{ __html: caseData.htmlContent }}
+            sandbox="allow-scripts allow-same-origin"
+            title="案例预览"
           />
         ) : (
           <div className="card" style={{ textAlign: "center", padding: "48px 0", color: "#94a3b8", marginBottom: "16px" }}>
