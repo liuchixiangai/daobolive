@@ -1,7 +1,7 @@
 import { prisma } from "./prisma";
 
 interface AuditLogInput {
-  adminId: string;
+  adminId: string | null;
   adminName: string;
   action: string;
   caseNo?: string;
@@ -14,7 +14,7 @@ export async function createAuditLog(input: AuditLogInput) {
   try {
     await prisma.auditLog.create({
       data: {
-        adminId: input.adminId,
+        adminId: input.adminId || undefined,
         adminName: input.adminName,
         action: input.action,
         caseNo: input.caseNo || null,

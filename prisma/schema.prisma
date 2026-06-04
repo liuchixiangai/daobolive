@@ -188,8 +188,8 @@ model Complaint {
 // ============================================================
 model AuditLog {
   id        String   @id @default(uuid())
-  adminId   String
-  admin     Admin    @relation(fields: [adminId], references: [id])
+  adminId   String?
+  admin     Admin?   @relation(fields: [adminId], references: [id])
   adminName String   // 操作人用户名（冗余，方便日志不依赖外键）
 
   action    String   // 操作类型
