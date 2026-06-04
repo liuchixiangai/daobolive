@@ -1,0 +1,190 @@
+generator client {
+  provider = "prisma-client"
+  output   = "../app/generated/prisma"
+}
+
+datasource db {
+  provider = "sqlite"
+}
+
+// ============================================================
+// Admin — 管理员
+// ============================================================
+model Admin {
+  id        String   @id @default(uuid())
+  username  String   @unique
+  password  String
+  role      String   @default("ADMIN") // SUPER_ADMIN | ADMIN
+  disabled  Boolean  @default(false)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // 关联：创建人
+  createdCases  Case[]        @relation("CaseCreator")
+  auditLogs     AuditLog[]
+  complaints    Complaint[]   @relation("ComplaintHandler")
+
+  @@map("admins")
+}
+
+// ============================================================
+// Case — 导播案例（代码层面用 Case，页面向用户展示"导播案例"）
+// ============================================================
+model Case {
+  id        String   @id @default(uuid())
+  caseNo    String   @unique // 案例编号，如 000001
+  status    String   @default("DRAFT") // DRAFT | PUBLISHED | UNPUBLISHED | REJECTED
+
+  // 基本信息
+  name           String  // 案例名称
+  directorName   String  // 导播姓名
+  teamName       String? // 团队名称
+  contactInfo    String? // 联系方式
+
+  // 活动分类 + 地区
+  category String? // 活动分类
+  province String? // 省份
+  city     String? // 城市
+
+  // 联系信息
+  contactPerson  String? // 联系人姓名
+  contactPhone   String? // 手机号
+  contactWechat  String? // 微信号
+  contactEmail   String? // 邮箱
+
+  // 展示信息
+  summary       String? // 案例简介
+  teamDisplay   String? // 团队展示内容
+  techTags      String? // 技术标签（逗号分隔）
+
+  // HTML 主体内容（管理员粘贴的展示 HTML）
+  htmlContent   String?
+
+  // 发布约束
+  commitmentUploaded Boolean @default(false) // 承诺书是否已上传
+  wechatVerified     Boolean @default(false) // 微信是否已核验
+
+  // 访问码保护
+  accessCodeEnabled Boolean @default(false) // 是否启用访问码保护
+  accessCode        String?                  // 访问码
+
+  // 创建人（关联 Admin）
+  creatorId String
+  creator   Admin  @relation("CaseCreator", fields: [creatorId], references: [id])
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // 关联
+  commitments    CommitmentFile[]
+  complaints     Complaint[]
+
+  @@map("cases")
+}
+
+// ============================================================
+// CommitmentFile — 承诺书文件
+// ============================================================
+model CommitmentFile {
+  id        String   @id @default(uuid())
+  caseId    String
+  case      Case     @relation(fields: [caseId], references: [id], onDelete: Cascade)
+  filename  String   // 原始文件名
+  filepath  String   // 服务器存储路径
+  mimetype  String
+  size      Int
+  createdAt DateTime @default(now())
+
+  @@map("commitment_files")
+}
+
+// ============================================================
+// Tool — 导播工具
+// ============================================================
+model Tool {
+  id          String   @id @default(uuid())
+  name        String   // 工具名称
+  category    String   // 工具分类
+  summary     String?  // 工具简介
+  url         String?  // 工具链接
+  enabled     Boolean  @default(true)
+  sortOrder   Int      @default(0)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@map("tools")
+}
+
+// ============================================================
+// CommunityConfig — 导播社群配置
+// ============================================================
+model CommunityConfig {
+  id              String   @id @default(uuid())
+  name            String   @default("导播星球社群") // 社群名称
+  summary         String?  // 社群简介
+  adminWechat     String?  // 管理员微信
+  joinInstruction String?  // 加入说明
+  rules           String?  // 社群规则
+  suitableFor     String?  // 适合加入的人
+  unsuitableFor   String?  // 不适合加入的人
+  isOpen          Boolean  @default(true) // 是否开放加入
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  @@map("community_configs")
+}
+
+// ============================================================
+// Complaint — 投诉
+// ============================================================
+model Complaint {
+  id          String   @id @default(uuid())
+  caseId      String
+  case        Case     @relation(fields: [caseId], references: [id])
+  caseNo      String   // 冗余字段，方便查询
+  caseName    String   // 冗余字段
+
+  // 投诉类型
+  type        String   // INFRINGEMENT | FALSE_AD | ILLEGAL | WRONG_CONTACT | VIDEO_BROKEN | OTHER
+
+  // 投诉内容
+  description String   // 投诉说明
+  evidenceUrl String?  // 证明材料链接
+
+  // 投诉人信息
+  reporterName  String?
+  reporterPhone String?
+  reporterEmail String?
+
+  // 处理状态
+  status      String   @default("PENDING") // PENDING | PROCESSING | RESOLVED | REJECTED
+  handlerId   String?  // 处理人
+  handler     Admin?   @relation("ComplaintHandler", fields: [handlerId], references: [id])
+  handlerNote String?  // 处理备注
+  handledAt   DateTime?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("complaints")
+}
+
+// ============================================================
+// AuditLog — 操作日志
+// ============================================================
+model AuditLog {
+  id        String   @id @default(uuid())
+  adminId   String
+  admin     Admin    @relation(fields: [adminId], references: [id])
+  adminName String   // 操作人用户名（冗余，方便日志不依赖外键）
+
+  action    String   // 操作类型
+  caseNo    String?  // 相关案例编号
+  ip        String?  // 操作IP
+  result    String?  // 操作结果
+  note      String?  // 备注
+
+  createdAt DateTime @default(now())
+
+  @@map("audit_logs")
+}
