@@ -1,11 +1,20 @@
+"use client";
+
+import CaseForm, { CaseFormData } from "../CaseForm";
+
 export default function NewCasePage() {
-  return (
-    <div className="page-enter">
-      <div className="card">
-        <p style={{ color: "#64748b", textAlign: "center", padding: "24px 0" }}>
-          案例创建功能将在下一阶段实现。
-        </p>
-      </div>
-    </div>
-  );
+  const handleSubmit = async (data: CaseFormData) => {
+    const res = await fetch("/api/admin/cases", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(data),
+    });
+    const result = await res.json();
+    if (!res.ok) {
+      return { error: result.error || "创建失败" };
+    }
+    return {};
+  };
+
+  return <CaseForm mode="create" onSubmit={handleSubmit} />;
 }
