@@ -103,7 +103,7 @@ export default function PublicCasePage({
   if (error || !caseData) {
     return (
       <div style={{ maxWidth: "800px", margin: "0 auto", padding: "48px 24px", textAlign: "center" }}>
-        <div className="alert alert-error">{error || "案例不存在或已下架"}</div>
+        <div className="alert alert-error">{error || "该案例暂不可访问"}</div>
         <Link href="/" className="btn btn-outline" style={{ marginTop: "16px" }}>
           返回首页
         </Link>

@@ -15,8 +15,8 @@ export async function GET(
       return NextResponse.json({ error: "案例不存在" }, { status: 404 });
     }
 
-    if (caseData.status === "DRAFT" || caseData.status === "UNPUBLISHED" || caseData.status === "REJECTED") {
-      return NextResponse.json({ error: "案例不可访问" }, { status: 404 });
+    if (caseData.status !== "PUBLISHED") {
+      return NextResponse.json({ error: "该案例暂不可访问" }, { status: 404 });
     }
 
     // 如果启用了访问码保护

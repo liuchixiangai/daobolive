@@ -69,10 +69,42 @@ export default function CasesPage() {
     }
   };
 
+  const handleStatusChange = async (id: string, status: string, name: string) => {
+    const confirmMsgs: Record<string, string> = {
+      PUBLISHED: `确认发布「${name}」吗？`,
+      UNPUBLISHED: `确认下架「${name}」吗？`,
+      DRAFT: `确认恢复「${name}」为草稿吗？`,
+    };
+    const msg = confirmMsgs[status] || `确认执行此操作吗？`;
+    if (!confirm(msg)) return;
+
+    try {
+      const res = await fetch(`/api/admin/cases/${id}/status`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ status }),
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        alert(data.error || "操作失败");
+        return;
+      }
+      fetchCases();
+    } catch {
+      alert("操作失败");
+    }
+  };
+
+  const handleCopyLink = (caseNo: string) => {
+    navigator.clipboard.writeText(`${window.location.origin}/p/${caseNo}`).then(() => {
+      alert("链接已复制");
+    });
+  };
+
   const renderActions = (c: CaseItem) => {
     const btns: React.ReactNode[] = [];
 
-    // 编辑 — 所有状态都可以编辑
+    // 编辑 — 所有状态
     btns.push(
       <Link key="edit" href={`/admin/cases/${c.id}`} className="btn btn-outline btn-sm">
         编辑
@@ -86,26 +118,79 @@ export default function CasesPage() {
             预览
           </Link>
         );
+        btns.push(
+          <button
+            key="publish"
+            className="btn btn-primary btn-sm"
+            onClick={() => handleStatusChange(c.id, "PUBLISHED", c.name)}
+          >
+            发布
+          </button>
+        );
         break;
+
       case "PUBLISHED":
         btns.push(
           <Link key="open" href={`/p/${c.caseNo}`} target="_blank" className="btn btn-outline btn-sm" style={{ color: "#16a34a", borderColor: "#bbf7d0" }}>
             打开公开页
           </Link>
         );
-        break;
-      case "UNPUBLISHED":
-      case "REJECTED":
-        // 可以预览
         btns.push(
-          <Link key="preview" href={`/admin/cases/${c.id}/preview`} className="btn btn-outline btn-sm" style={{ color: "#2563eb", borderColor: "#bfdbfe" }}>
-            预览
-          </Link>
+          <button
+            key="copy"
+            className="btn btn-outline btn-sm"
+            onClick={() => handleCopyLink(c.caseNo)}
+          >
+            复制链接
+          </button>
+        );
+        btns.push(
+          <button
+            key="unpublish"
+            className="btn btn-outline btn-sm"
+            style={{ color: "#dc2626", borderColor: "#fecaca" }}
+            onClick={() => handleStatusChange(c.id, "UNPUBLISHED", c.name)}
+          >
+            下架
+          </button>
+        );
+        break;
+
+      case "UNPUBLISHED":
+        btns.push(
+          <button
+            key="restore"
+            className="btn btn-primary btn-sm"
+            onClick={() => handleStatusChange(c.id, "PUBLISHED", c.name)}
+          >
+            恢复发布
+          </button>
+        );
+        btns.push(
+          <button
+            key="copy"
+            className="btn btn-outline btn-sm"
+            onClick={() => handleCopyLink(c.caseNo)}
+          >
+            复制链接
+          </button>
+        );
+        break;
+
+      case "REJECTED":
+        btns.push(
+          <button
+            key="restore"
+            className="btn btn-outline btn-sm"
+            onClick={() => handleStatusChange(c.id, "DRAFT", c.name)}
+          >
+            恢复为草稿
+          </button>
         );
         break;
     }
 
-    // 删除 — 所有状态可删除
+    // 删除 — 所有状态
     btns.push(
       <button
         key="delete"

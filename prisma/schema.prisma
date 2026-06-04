@@ -20,9 +20,10 @@ model Admin {
   updatedAt DateTime @updatedAt
 
   // 关联：创建人
-  createdCases  Case[]        @relation("CaseCreator")
-  auditLogs     AuditLog[]
-  complaints    Complaint[]   @relation("ComplaintHandler")
+  createdCases    Case[]        @relation("CaseCreator")
+  verifiedCases   Case[]        @relation("CaseVerifier")
+  auditLogs       AuditLog[]
+  complaints      Complaint[]   @relation("ComplaintHandler")
 
   @@map("admins")
 }
@@ -61,8 +62,18 @@ model Case {
   htmlContent   String?
 
   // 发布约束
-  commitmentUploaded Boolean @default(false) // 承诺书是否已上传
-  wechatVerified     Boolean @default(false) // 微信是否已核验
+  commitmentUploaded   Boolean   @default(false)
+  commitmentFileName   String?   // 承诺书原始文件名
+  commitmentFilePath   String?   // 承诺书存储路径
+  commitmentFileSize   Int?
+  commitmentFileType   String?
+  commitmentUploadedAt DateTime? // 上传承诺书时间
+  commitmentUploadedBy String?   // 上传人
+
+  wechatVerified     Boolean   @default(false) // 微信是否已核验
+  wechatVerifiedAt   DateTime? // 核验时间
+  wechatVerifiedById String?   // 核验人 ID
+  wechatVerifiedNote String?   // 核验备注
 
   // 访问码保护
   accessCodeEnabled Boolean @default(false) // 是否启用访问码保护
@@ -71,6 +82,9 @@ model Case {
   // 创建人（关联 Admin）
   creatorId String
   creator   Admin  @relation("CaseCreator", fields: [creatorId], references: [id])
+
+  // 微信核验人（关联 Admin，可选）
+  wechatVerifiedBy Admin? @relation("CaseVerifier", fields: [wechatVerifiedById], references: [id])
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
