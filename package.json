@@ -10,7 +10,8 @@
     "lint": "eslint",
     "db:migrate": "npx prisma migrate dev",
     "db:seed": "npx tsx lib/seed.ts",
-    "db:setup": "npx prisma migrate dev --name init && npx tsx lib/seed.ts"
+    "db:setup": "npx prisma migrate dev --name init && npx tsx lib/seed.ts",
+    "db:init-counters": "npx tsx -e \"import { initCounters } from './lib/counter-init'; initCounters().then(() => process.exit(0)).catch(e => { console.error(e); process.exit(1); })\""
   },
   "dependencies": {
     "@prisma/adapter-better-sqlite3": "^7.8.0",

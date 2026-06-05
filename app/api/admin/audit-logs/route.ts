@@ -1,9 +1,16 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
+import { getAdminFromHeaders } from "@/lib/audit";
+import { isSuperAdmin } from "@/lib/auth";
 
 // GET /api/admin/audit-logs
 export async function GET(request: NextRequest) {
   try {
+    const admin = getAdminFromHeaders(request.headers);
+    if (!admin.id) return NextResponse.json({ error: "未登录" }, { status: 401 });
+    if (!isSuperAdmin(admin.role)) {
+      return NextResponse.json({ error: "权限不足" }, { status: 403 });
+    }
     const sp = request.nextUrl.searchParams;
     const search = sp.get("search")?.trim();
     const page = parseInt(sp.get("page") || "1");

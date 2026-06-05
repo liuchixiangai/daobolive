@@ -100,3 +100,18 @@ setInterval(() => {
     }
   }
 }, 600000);
+
+// ============================================================
+// RBAC 权限检查
+// ============================================================
+
+export function requireSuperAdmin(role: string | null | undefined): { error: string } | null {
+  if (role !== "SUPER_ADMIN") {
+    return { error: "权限不足，仅超级管理员可执行此操作" };
+  }
+  return null;
+}
+
+export function isSuperAdmin(role: string | null | undefined): boolean {
+  return role === "SUPER_ADMIN";
+}

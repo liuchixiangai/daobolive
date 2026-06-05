@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { createAuditLog, getAdminFromHeaders } from "@/lib/audit";
+import { isSuperAdmin } from "@/lib/auth";
 
 // GET /api/admin/cases/[id] — 案例详情
 export async function GET(
@@ -111,6 +112,11 @@ export async function DELETE(
     const existing = await prisma.case.findUnique({ where: { id } });
     if (!existing) {
       return NextResponse.json({ error: "案例不存在" }, { status: 404 });
+    }
+
+    // RBAC: 只有创建者或 SUPER_ADMIN 可以删除
+    if (existing.creatorId !== admin.id && !isSuperAdmin(admin.role)) {
+      return NextResponse.json({ error: "权限不足" }, { status: 403 });
     }
 
     await prisma.case.delete({ where: { id } });
