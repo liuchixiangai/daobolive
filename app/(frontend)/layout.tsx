@@ -52,6 +52,19 @@ export default function FrontendLayout({
               导播案例
             </Link>
             <Link
+              href="/apply"
+              style={{
+                color: "#fbbf24",
+                textDecoration: "none",
+                padding: "6px 12px",
+                borderRadius: "6px",
+                fontSize: "14px",
+                fontWeight: 500,
+              }}
+            >
+              申请入驻
+            </Link>
+            <Link
               href="/tools"
               style={{
                 color: "#94a3b8",

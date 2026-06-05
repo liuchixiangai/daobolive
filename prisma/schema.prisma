@@ -79,6 +79,9 @@ model Case {
   accessCodeEnabled Boolean @default(false) // 是否启用访问码保护
   accessCode        String?                  // 访问码
 
+  // 来源申请
+  sourceApplicationNo String? // 来源申请编号（A000001）
+
   // 创建人（关联 Admin）
   creatorId String
   creator   Admin  @relation("CaseCreator", fields: [creatorId], references: [id])
@@ -181,6 +184,37 @@ model Complaint {
   updatedAt DateTime @updatedAt
 
   @@map("complaints")
+}
+
+// ============================================================
+// Application — 申请入驻
+// ============================================================
+model Application {
+  id        String   @id @default(uuid())
+  appNo     String   @unique // 申请编号 A000001
+
+  // 申请信息（极简）
+  teamName    String // 团队名称
+  contactName String // 联系人
+  contactPhone String // 联系电话
+  contactEmail String // 邮箱
+
+  // 电子承诺书
+  commitmentAgreed   Boolean   // 是否勾选承诺书
+  commitmentVersion  String    @default("v1.0") // 承诺书版本号
+  commitmentAgreedAt DateTime  // 承诺书确认时间
+
+  // 提交信息
+  ip        String   // 提交 IP
+  userAgent String?  // User-Agent
+
+  // 状态
+  status    String   @default("PENDING") // PENDING | CONTACTED | CONVERTED | REJECTED
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("applications")
 }
 
 // ============================================================

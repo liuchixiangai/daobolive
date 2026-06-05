@@ -10,6 +10,7 @@ interface DashboardData {
   unpublishedCount: number;
   rejectedCount: number;
   pendingComplaints: number;
+  pendingApplications: number;
   toolCount: number;
   communityOpen: boolean;
 }
@@ -76,6 +77,13 @@ export default function DashboardPage() {
       color: data.pendingComplaints > 0 ? "#dc2626" : "#16a34a",
       href: "/admin/complaints",
       highlight: data.pendingComplaints > 0,
+    },
+    {
+      label: "待处理申请",
+      value: data.pendingApplications,
+      color: data.pendingApplications > 0 ? "#d97706" : "#16a34a",
+      href: "/admin/applications",
+      highlight: data.pendingApplications > 0,
     },
     {
       label: "工具数量",

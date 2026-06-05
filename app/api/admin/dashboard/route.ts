@@ -3,7 +3,7 @@ import { prisma } from "@/lib/prisma";
 
 export async function GET(_request: NextRequest) {
   try {
-    const [caseTotal, publishedCount, draftCount, unpublishedCount, rejectedCount, pendingComplaints, toolCount, communityConfig] =
+    const [caseTotal, publishedCount, draftCount, unpublishedCount, rejectedCount, pendingComplaints, pendingApplications, toolCount, communityConfig] =
       await Promise.all([
         prisma.case.count(),
         prisma.case.count({ where: { status: "PUBLISHED" } }),
@@ -11,6 +11,7 @@ export async function GET(_request: NextRequest) {
         prisma.case.count({ where: { status: "UNPUBLISHED" } }),
         prisma.case.count({ where: { status: "REJECTED" } }),
         prisma.complaint.count({ where: { status: "PENDING" } }),
+        prisma.application.count({ where: { status: "PENDING" } }),
         prisma.tool.count(),
         prisma.communityConfig.findFirst(),
       ]);
@@ -22,6 +23,7 @@ export async function GET(_request: NextRequest) {
       unpublishedCount,
       rejectedCount,
       pendingComplaints,
+      pendingApplications,
       toolCount,
       communityOpen: communityConfig?.isOpen ?? false,
     });
