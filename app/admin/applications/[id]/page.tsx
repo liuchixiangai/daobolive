@@ -39,15 +39,21 @@ export default function ApplicationDetailPage({ params }: { params: Promise<{ id
   const router = useRouter();
   const [app, setApp] = useState<Application | null>(null);
   const [linkedCase, setLinkedCase] = useState<LinkedCase | null>(null);
+  const [community, setCommunity] = useState<Record<string, any>>({});
   const [loading, setLoading] = useState(true);
   const [actionLoading, setActionLoading] = useState(false);
   const [msg, setMsg] = useState("");
 
   const load = async () => {
-    const res = await fetch(`/api/admin/applications/${id}`);
+    const [res, comRes] = await Promise.all([
+      fetch(`/api/admin/applications/${id}`),
+      fetch("/api/admin/community"),
+    ]);
     const data = await res.json();
+    const comData = await comRes.json();
     setApp(data.application);
     setLinkedCase(data.linkedCase || null);
+    setCommunity(comData || {});
     setLoading(false);
   };
 
@@ -150,6 +156,20 @@ export default function ApplicationDetailPage({ params }: { params: Promise<{ id
           </div>
         </div>
       )}
+
+      {/* 联系方式引导 */}
+      <div className="card" style={{ marginBottom: "16px" }}>
+        <h3 className="card-title">用户引导信息</h3>
+        <div style={{ fontSize: "14px" }}>
+          <div style={{ marginBottom: "4px", color: "#64748b" }}>已提示用户通过以下方式联系管理员并备注申请编号。</div>
+          {community.adminWechat ? (
+            <div style={{ marginBottom: "4px" }}><span style={{ color: "#94a3b8" }}>微信：</span><strong>{community.adminWechat}</strong></div>
+          ) : <div style={{ color: "#94a3b8", marginBottom: "4px" }}>微信：未配置</div>}
+          {(community.qqGroupNo || community.qqGroupUrl) ? (
+            <div><span style={{ color: "#94a3b8" }}>QQ 群：</span><strong>{community.qqGroupNo || community.qqGroupUrl}</strong></div>
+          ) : <div style={{ color: "#94a3b8" }}>QQ 群：未配置</div>}
+        </div>
+      </div>
 
       {/* 操作 */}
       <div className="card">

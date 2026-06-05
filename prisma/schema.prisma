@@ -145,6 +145,15 @@ model CommunityConfig {
   suitableFor     String?  // 适合加入的人
   unsuitableFor   String?  // 不适合加入的人
   isOpen          Boolean  @default(true) // 是否开放加入
+
+  // 联系方式（用于申请成功页引导）
+  showWechat   Boolean  @default(true)  // 是否显示微信入口
+  wechatQrUrl  String?                  // 微信二维码图片链接
+  showQqGroup  Boolean  @default(true)  // 是否显示 QQ 群入口
+  qqGroupNo    String?                  // QQ 群号
+  qqGroupUrl   String?                  // QQ 群加入链接
+  qqQrUrl      String?                  // QQ 群二维码图片链接
+
   createdAt       DateTime @default(now())
   updatedAt       DateTime @updatedAt
 
