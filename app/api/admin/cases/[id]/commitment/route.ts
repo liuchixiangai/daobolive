@@ -64,6 +64,17 @@ export async function POST(
       },
     });
 
+    // 创建历史记录
+    await prisma.commitmentFile.create({
+      data: {
+        caseId: id,
+        filename: file.name,
+        filepath: filename,
+        mimetype: file.type,
+        size: file.size,
+      },
+    });
+
     // 写入操作日志
     await createAuditLog({
       adminId: admin.id,

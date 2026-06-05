@@ -15,7 +15,11 @@ export async function PUT(
     const body = await request.json();
     const { status } = body;
 
-    const valid = ["PENDING", "CONTACTED", "CONVERTED", "REJECTED"];
+    // CONVERTED 只能通过 convert 接口完成，不允许手动设置
+    const valid = ["PENDING", "CONTACTED", "REJECTED"];
+    if (status === "CONVERTED") {
+      return NextResponse.json({ error: "请使用'转为导播案例'功能来完成转换。" }, { status: 400 });
+    }
     if (!valid.includes(status)) {
       return NextResponse.json({ error: "无效状态" }, { status: 400 });
     }

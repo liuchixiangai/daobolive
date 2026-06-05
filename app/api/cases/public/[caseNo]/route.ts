@@ -43,11 +43,12 @@ export async function POST(
       where: { caseNo },
     });
 
-    if (!caseData) {
-      return NextResponse.json({ error: "案例不存在" }, { status: 404 });
+    if (!caseData || caseData.status !== "PUBLISHED") {
+      return NextResponse.json({ error: "该案例暂不可访问" }, { status: 404 });
     }
 
     if (!caseData.accessCodeEnabled) {
+      // 未启用访问码，但 status 已验证为 PUBLISHED
       return NextResponse.json({ case: caseData });
     }
 

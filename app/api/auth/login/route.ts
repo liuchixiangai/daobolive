@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
-import { comparePassword, signToken } from "@/lib/auth";
+import { comparePassword, signToken, checkLoginRateLimit, recordLoginFailure, clearLoginRateLimit } from "@/lib/auth";
 import { cookies } from "next/headers";
 
 export async function POST(request: NextRequest) {
@@ -8,37 +8,35 @@ export async function POST(request: NextRequest) {
     const { username, password } = await request.json();
 
     if (!username || !password) {
-      return NextResponse.json(
-        { error: "请输入用户名和密码" },
-        { status: 400 }
-      );
+      return NextResponse.json({ error: "请输入用户名和密码" }, { status: 400 });
     }
 
-    const admin = await prisma.admin.findUnique({
-      where: { username },
-    });
+    const ip = request.headers.get("x-forwarded-for")?.split(",")[0]?.trim() || "unknown";
+
+    // 登录限速检查
+    const rateLimitError = checkLoginRateLimit(ip, username);
+    if (rateLimitError) {
+      return NextResponse.json({ error: rateLimitError }, { status: 429 });
+    }
+
+    const admin = await prisma.admin.findUnique({ where: { username } });
 
     if (!admin) {
-      return NextResponse.json(
-        { error: "用户名或密码错误" },
-        { status: 401 }
-      );
+      recordLoginFailure(ip, username);
+      return NextResponse.json({ error: "用户名或密码错误" }, { status: 401 });
     }
 
     if (admin.disabled) {
-      return NextResponse.json(
-        { error: "账号已被禁用，请联系超级管理员" },
-        { status: 403 }
-      );
+      return NextResponse.json({ error: "账号已被禁用" }, { status: 403 });
     }
 
     const valid = await comparePassword(password, admin.password);
     if (!valid) {
-      return NextResponse.json(
-        { error: "用户名或密码错误" },
-        { status: 401 }
-      );
+      recordLoginFailure(ip, username);
+      return NextResponse.json({ error: "用户名或密码错误" }, { status: 401 });
     }
+
+    clearLoginRateLimit(ip, username);
 
     // 签发 JWT
     const token = await signToken({
@@ -48,11 +46,6 @@ export async function POST(request: NextRequest) {
     });
 
     // 记录登录日志
-    const ip =
-      request.headers.get("x-forwarded-for")?.split(",")[0]?.trim() ||
-      request.headers.get("x-real-ip") ||
-      "unknown";
-
     await prisma.auditLog.create({
       data: {
         adminId: admin.id,

@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { createAuditLog, getAdminFromHeaders } from "@/lib/audit";
+import { nextCaseNo } from "@/lib/counter";
 
 // POST /api/admin/applications/[id]/convert — 一键转为导播案例草稿
 export async function POST(
@@ -19,16 +20,8 @@ export async function POST(
       return NextResponse.json({ error: "该申请已转为案例" }, { status: 400 });
     }
 
-    // 生成导播案例编号
-    const lastCase = await prisma.case.findFirst({
-      orderBy: { createdAt: "desc" },
-      select: { caseNo: true },
-    });
-    let caseNo = "000001";
-    if (lastCase?.caseNo) {
-      const n = parseInt(lastCase.caseNo, 10);
-      if (!isNaN(n)) caseNo = String(n + 1).padStart(6, "0");
-    }
+    // 原子生成导播案例编号
+    const caseNo = await nextCaseNo();
 
     // 创建案例草稿，自动带入申请信息
     const newCase = await prisma.case.create({

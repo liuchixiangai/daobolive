@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { createAuditLog } from "@/lib/audit";
+import { nextAppNo } from "@/lib/counter";
 
 const RATE_LIMIT_MAP = new Map<string, { count: number; resetAt: number }>();
 const MAX_PER_HOUR = 5;
@@ -56,24 +57,13 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "请勾选电子承诺书。" }, { status: 400 });
     }
 
-    // 生成申请编号
-    const lastApp = await prisma.application.findFirst({
-      orderBy: { createdAt: "desc" },
-      select: { appNo: true },
-    });
-
-    let nextNo = "A000001";
-    if (lastApp?.appNo) {
-      const num = parseInt(lastApp.appNo.replace("A", ""), 10);
-      if (!isNaN(num)) {
-        nextNo = "A" + String(num + 1).padStart(6, "0");
-      }
-    }
+    // 原子生成申请编号
+    const appNo = await nextAppNo();
 
     // 创建申请
     const application = await prisma.application.create({
       data: {
-        appNo: nextNo,
+        appNo,
         teamName: teamName.trim(),
         contactName: contactName.trim(),
         contactPhone: contactPhone.trim(),
@@ -97,7 +87,7 @@ export async function POST(request: NextRequest) {
       adminId: null,
       adminName: contactName.trim(),
       action: "APPLICATION_SUBMIT",
-      note: `申请 ${nextNo}: ${teamName}`,
+      note: `申请 ${appNo}: ${teamName}`,
       ip,
     });
 
@@ -106,19 +96,19 @@ export async function POST(request: NextRequest) {
       const smtpHost = process.env.SMTP_HOST;
       const notifyEmail = process.env.APPLICATION_NOTIFY_EMAIL;
       if (smtpHost && notifyEmail) {
-        console.log(`[SMTP] 申请通知: ${notifyEmail}, 申请编号: ${nextNo}`);
+        console.log(`[SMTP] 申请通知: ${notifyEmail}, 申请编号: ${appNo}`);
         await createAuditLog({
           adminId: null,
           adminName: "系统",
           action: "APPLICATION_EMAIL_SENT",
-          note: `申请 ${nextNo} 邮件已发送`,
+          note: `申请 ${appNo} 邮件已发送`,
         });
       } else {
         await createAuditLog({
           adminId: null,
           adminName: "系统",
           action: "SMTP_NOT_CONFIGURED",
-          note: `SMTP 未配置，申请 ${nextNo} 通知邮件未发送`,
+          note: `SMTP 未配置，申请 ${appNo} 通知邮件未发送`,
         });
       }
     } catch {
@@ -127,7 +117,7 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json({
       success: true,
-      appNo: nextNo,
+      appNo,
       message: "申请已提交",
     });
   } catch (error) {

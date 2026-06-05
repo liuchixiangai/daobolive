@@ -2,29 +2,36 @@ import "dotenv/config";
 import { prisma } from "./prisma";
 import { hashPassword } from "./auth";
 
+const FORBIDDEN_PASSWORDS = ["admin123", "admin", "password", "123456", "12345678"];
+
 async function main() {
-  console.log("🌱 Seeding database...");
+  console.log("Seeding database...");
 
-  // 创建超级管理员
-  const username = process.env.ADMIN_INIT_USERNAME || "admin";
-  const password = process.env.ADMIN_INIT_PASSWORD || "admin123";
+  const username = process.env.ADMIN_INIT_USERNAME;
+  const password = process.env.ADMIN_INIT_PASSWORD;
 
-  const existingAdmin = await prisma.admin.findUnique({
-    where: { username },
-  });
-
-  if (existingAdmin) {
-    console.log(`Admin "${username}" already exists, skipping.`);
+  if (!username || !password) {
+    console.log("ADMIN_INIT_USERNAME or ADMIN_INIT_PASSWORD not set, skipping admin creation.");
   } else {
-    const hashedPassword = await hashPassword(password);
-    await prisma.admin.create({
-      data: {
-        username,
-        password: hashedPassword,
-        role: "SUPER_ADMIN",
-      },
-    });
-    console.log(`✅ Super admin created: ${username} / ${password}`);
+    if (FORBIDDEN_PASSWORDS.includes(password)) {
+      console.error("ERROR: ADMIN_INIT_PASSWORD is a forbidden default password. Refusing to create admin.");
+      process.exit(1);
+    }
+    if (password.length < 8) {
+      console.error("ERROR: ADMIN_INIT_PASSWORD must be at least 8 characters.");
+      process.exit(1);
+    }
+
+    const existingAdmin = await prisma.admin.findUnique({ where: { username } });
+    if (existingAdmin) {
+      console.log(`Admin "${username}" already exists, skipping.`);
+    } else {
+      const hashedPassword = await hashPassword(password);
+      await prisma.admin.create({
+        data: { username, password: hashedPassword, role: "SUPER_ADMIN" },
+      });
+      console.log(`Super admin "${username}" created.`);
+    }
   }
 
   // 创建默认社群配置
@@ -42,10 +49,10 @@ async function main() {
         isOpen: true,
       },
     });
-    console.log("✅ Default community config created.");
+    console.log("Default community config created.");
   }
 
-  console.log("✅ Seed completed.");
+  console.log("Seed completed.");
 }
 
 main()

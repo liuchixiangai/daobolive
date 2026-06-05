@@ -40,6 +40,10 @@ export default function HtmlEditor({ caseId, initialHtml }: HtmlEditorProps) {
         setMessage({ type: "error", text: data.error || "保存失败" });
       } else {
         setMessage({ type: "success", text: "HTML 已保存" });
+        // 用服务端返回的清洗后内容回填编辑器
+        if (data.sanitized) {
+          setHtmlCode(data.sanitized);
+        }
         if (data.warnings?.length) {
           setWarnings(data.warnings);
         }
@@ -184,7 +188,7 @@ export default function HtmlEditor({ caseId, initialHtml }: HtmlEditorProps) {
                 <iframe
                   srcDoc={wrapHtmlForDisplay(sanitized.html)}
                   style={{ width: "100%", height: "100%", border: "none" }}
-                  sandbox="allow-scripts allow-same-origin"
+                  sandbox="allow-scripts"
                   title="HTML 预览"
                 />
               ) : (

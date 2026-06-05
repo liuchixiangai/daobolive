@@ -78,7 +78,7 @@ export default function PreviewPage({
               borderRadius: "8px",
               background: "#ffffff",
             }}
-            sandbox="allow-scripts allow-same-origin"
+            sandbox="allow-same-origin"
             title="案例预览"
           />
         ) : (

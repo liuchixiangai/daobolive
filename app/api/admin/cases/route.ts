@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { createAuditLog, getAdminFromHeaders } from "@/lib/audit";
+import { nextCaseNo } from "@/lib/counter";
 
 // GET /api/admin/cases — 案例列表
 export async function GET(request: NextRequest) {
@@ -61,23 +62,12 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "活动分类不能为空" }, { status: 400 });
     }
 
-    // 自动生成案例编号
-    const lastCase = await prisma.case.findFirst({
-      orderBy: { createdAt: "desc" },
-      select: { caseNo: true },
-    });
-
-    let nextNo = "000001";
-    if (lastCase?.caseNo) {
-      const lastNum = parseInt(lastCase.caseNo, 10);
-      if (!isNaN(lastNum)) {
-        nextNo = String(lastNum + 1).padStart(6, "0");
-      }
-    }
+    // 原子生成案例编号
+    const caseNo = await nextCaseNo();
 
     const newCase = await prisma.case.create({
       data: {
-        caseNo: nextNo,
+        caseNo,
         name: body.name.trim(),
         directorName: body.directorName.trim(),
         teamName: body.teamName?.trim() || null,

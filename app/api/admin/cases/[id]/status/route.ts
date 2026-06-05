@@ -33,6 +33,12 @@ export async function PUT(
       if (!existing.name?.trim()) {
         checks.push("未填写案例名称，不能发布");
       }
+      if (!existing.directorName?.trim()) {
+        checks.push("未填写导播姓名，不能发布");
+      }
+      if (!existing.category?.trim()) {
+        checks.push("未选择活动分类，不能发布");
+      }
       if (!existing.htmlContent?.trim()) {
         checks.push("未保存 HTML，不能发布");
       }
