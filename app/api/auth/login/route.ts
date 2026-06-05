@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
-import { comparePassword, signToken, checkLoginRateLimit, recordLoginFailure, clearLoginRateLimit } from "@/lib/auth";
+import { comparePassword, signToken } from "@/lib/auth";
 import { cookies } from "next/headers";
 
 export async function POST(request: NextRequest) {
@@ -13,16 +13,9 @@ export async function POST(request: NextRequest) {
 
     const ip = request.headers.get("x-forwarded-for")?.split(",")[0]?.trim() || "unknown";
 
-    // 登录限速检查
-    const rateLimitError = checkLoginRateLimit(ip, username);
-    if (rateLimitError) {
-      return NextResponse.json({ error: rateLimitError }, { status: 429 });
-    }
-
     const admin = await prisma.admin.findUnique({ where: { username } });
 
     if (!admin) {
-      recordLoginFailure(ip, username);
       return NextResponse.json({ error: "用户名或密码错误" }, { status: 401 });
     }
 
@@ -32,11 +25,8 @@ export async function POST(request: NextRequest) {
 
     const valid = await comparePassword(password, admin.password);
     if (!valid) {
-      recordLoginFailure(ip, username);
       return NextResponse.json({ error: "用户名或密码错误" }, { status: 401 });
     }
-
-    clearLoginRateLimit(ip, username);
 
     // 签发 JWT
     const token = await signToken({
