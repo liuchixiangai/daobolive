@@ -71,9 +71,15 @@ export function recordLoginFailure(ip: string, username: string) {
   const key = `${ip}:${username}`;
   const now = Date.now();
   const entry = loginAttempts.get(key);
-  if (!entry || entry.lockUntil <= now) {
+  if (!entry) {
+    loginAttempts.set(key, { count: 1, lockUntil: 0 });
+  } else if (entry.lockUntil > now) {
+    // 已被锁定，不再增加计数
+  } else if (entry.lockUntil > 0 && entry.lockUntil <= now) {
+    // 锁已过期，重新开始计数
     loginAttempts.set(key, { count: 1, lockUntil: 0 });
   } else {
+    // lockUntil === 0，表示未锁定且正在累积
     entry.count++;
     if (entry.count >= MAX_ATTEMPTS) {
       entry.lockUntil = now + LOCK_TIME;

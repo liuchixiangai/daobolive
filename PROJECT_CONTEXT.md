@@ -48,6 +48,6 @@ GitHub 仓库：**https://github.com/liuchixiangai/daobolive.git**
 
 ## 当前状态
 
-- 最新 Commit: 282fccf
+- 最新 Commit: c326fa2（后续修复中）
 - 分支: main
-- npm run build: 通过
+- npm run build: 需要先 `npx prisma generate` 再 `npm run build`；或执行 `npm run build`（已配置 prebuild）
