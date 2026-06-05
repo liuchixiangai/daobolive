@@ -34,23 +34,20 @@ export async function POST(
     }
 
     // 原子更新申请状态为 CONVERTED（条件：status IN (PENDING, CONTACTED)）
-    try {
-      await prisma.application.updateMany({
-        where: {
-          id,
-          status: { in: ["PENDING", "CONTACTED"] },
-        },
-        data: { status: "CONVERTED" },
-      });
-    } catch {
+    const result = await prisma.application.updateMany({
+      where: {
+        id,
+        status: { in: ["PENDING", "CONTACTED"] },
+      },
+      data: { status: "CONVERTED" },
+    });
+
+    // 检查是否成功更新（count === 0 说明已被其他请求转换）
+    if (result.count === 0) {
       return NextResponse.json({ error: "该申请已被转换或状态不允许" }, { status: 400 });
     }
 
-    // 重新获取以确认状态已更新
-    const updatedApp = await prisma.application.findUnique({ where: { id } });
-    if (!updatedApp || updatedApp.status !== "CONVERTED") {
-      return NextResponse.json({ error: "该申请已被转换或状态不允许" }, { status: 400 });
-    }
+    // 无需重新查询，直接用已知数据
 
     // 原子生成导播案例编号
     const caseNo = await nextCaseNo();

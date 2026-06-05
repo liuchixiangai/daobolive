@@ -90,7 +90,7 @@ model Case {
   accessCode        String?                  // 访问码
 
   // 来源申请
-  sourceApplicationNo String? // 来源申请编号（A000001）
+  sourceApplicationNo String? @unique // 来源申请编号（A000001）
 
   // 创建人（关联 Admin）
   creatorId String

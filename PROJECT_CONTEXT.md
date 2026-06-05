@@ -8,8 +8,8 @@ GitHub 仓库：**https://github.com/liuchixiangai/daobolive.git**
 
 ## 目录说明
 
-- 本项目代码在 `daobolive-v1/` 子目录中
-- 审查和开发**必须进入 `daobolive-v1/` 目录**
+- GitHub 仓库根目录即为项目目录
+- 审查和开发直接以仓库根目录为工作目录
 - **不允许审查工作区根目录**
 - **不允许混入旧项目内容**
 
@@ -48,6 +48,6 @@ GitHub 仓库：**https://github.com/liuchixiangai/daobolive.git**
 
 ## 当前状态
 
-- 最新 Commit: c326fa2（后续修复中）
+- 当前 HEAD: main 分支最新 commit
 - 分支: main
-- npm run build: 需要先 `npx prisma generate` 再 `npm run build`；或执行 `npm run build`（已配置 prebuild）
+- npm run build: `npm run build`（prebuild 自动执行 prisma generate）

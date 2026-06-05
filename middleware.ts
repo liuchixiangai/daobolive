@@ -5,11 +5,14 @@ import { verifyToken } from "./lib/auth";
 const PUBLIC_PATHS = [
   "/admin/login",
   "/api/auth/login",
+  "/api/applications/submit",
+  "/api/community/config",
 ];
 
 // 前台公开路径
 const FRONTEND_PUBLIC_PREFIXES = [
   "/p/",
+  "/apply",
   "/complaint/",
   "/tools",
   "/community",

@@ -1,6 +1,7 @@
 import "dotenv/config";
 import { prisma } from "./prisma";
 import { hashPassword } from "./auth";
+import { initCounters } from "./counter-init";
 
 const FORBIDDEN_PASSWORDS = ["admin123", "admin", "password", "123456", "12345678"];
 
@@ -51,6 +52,9 @@ async function main() {
     });
     console.log("Default community config created.");
   }
+
+  // 初始化编号计数器（从已有数据回填）
+  await initCounters();
 
   console.log("Seed completed.");
 }
